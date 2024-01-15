@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 import pandas as pd
 
 def categorize_library(library, categories):
+    # print(library, len(categories), categories[0])
     return categories.get(library, 'Other')
 
 def interactive_library_usage_by_category(df):
@@ -64,6 +65,8 @@ def interactive_library_usage_by_category(df):
 def main():
     # Read categories
     cat = pd.read_json('cat.json', orient='index')
+    # Convert cat to dict
+    cat = cat.to_dict()[0]
     df = pd.read_csv('git.csv')
     # Apply the categorization function to the 'library' column
     df['category'] = df['library'].apply(categorize_library, args=(cat,))
