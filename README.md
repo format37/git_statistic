@@ -7,7 +7,7 @@ cd git_statistic
 pip install -r requirements.txt
 ```
 ### Usage
-* Obtain your github api key
+* Obtain your github [api key](https://github.com/settings/tokens?type=beta)
 Run:
 ```
 python3 download.py
