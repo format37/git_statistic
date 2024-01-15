@@ -44,7 +44,7 @@ def get_repo_data(username, token):
         except Exception as e:
             print(e)
             continue
-        break # TODO: Remove
+        # break # TODO: Remove
     return data
 
 def extract_library_name(import_statement):
