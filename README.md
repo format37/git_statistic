@@ -25,4 +25,4 @@ Run:
 ```
 python3 report.py
 ```
-Now you can publish your report.html file. In your github repo for example.
+Now you can publish or share your report.html file.
