@@ -26,3 +26,5 @@ Run:
 python3 report.py
 ```
 Now you can publish or share your report.html file.
+### Screenshot
+![Screenshot](https://github.com/format37/git_statistic/blob/main/assets/newplot.png?raw=true)
