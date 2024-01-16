@@ -5,8 +5,16 @@ from github import Github
 import re
 import json
 
-def list_python_files(repo):
-    return [file for file in repo.get_contents("") if file.name.endswith('.py')]
+def list_python_files(repo, path=""):
+    files_list = []
+    contents = repo.get_contents(path)
+
+    for file_content in contents:
+        if file_content.type == "dir":
+            files_list.extend(list_python_files(repo, file_content.path))
+        elif file_content.name.endswith('.py') or file_content.name.endswith('.ipynb'):
+            files_list.append(file_content)
+    return files_list
 
 def get_file_creation_date(repo, file_path):
     commits = repo.get_commits(path=file_path)
@@ -37,7 +45,16 @@ def get_repo_data(username, token):
             files = list_python_files(repo)
             print(len(files))
             for file in files:
-                file_content = requests.get(file.download_url).text
+                response = requests.get(file.download_url)
+                if file.name.endswith('.py'):
+                    file_content = response.text
+                elif file.name.endswith('.ipynb'):
+                    notebook_json = json.loads(response.text)
+                    file_content = "\n".join(
+                        "\n".join(cell["source"])
+                        for cell in notebook_json["cells"]
+                        if cell["cell_type"] == "code"
+                    )
                 imports = extract_imports(file_content)
                 creation_date = get_file_creation_date(repo, file.path)
                 data.append([repo.name, file.name, creation_date, file.last_modified, imports])
