@@ -4,7 +4,7 @@ import pandas as pd
 
 def categorize_library(library, categories):
     # print(library, len(categories), categories[0])
-    return categories.get(library, 'Other')
+    return categories.get(library, '')
 
 def interactive_library_usage_by_category(df):
     """
