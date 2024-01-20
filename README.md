@@ -41,7 +41,8 @@ Tools
 
 Please, fill the category for each library. Leave category blank if you don't familiar with the library.
 ```
-After filling the cat.json. Run:
+* Fill the enabled_categories.txt by categoruies that you need to enable in the report.  
+* Run:
 ```
 python3 report.py
 ```
