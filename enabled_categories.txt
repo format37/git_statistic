@@ -1,14 +1,6 @@
-Audio processing
 Cloud computing
 Computer vision
-Cryptography
 Databases
-Hardware
 Machine learning
-Natural language processing
 Networking
 Parallel computing
-Reinforcement learning
-Visualization
-Web
-Web scraping

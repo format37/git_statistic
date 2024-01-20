@@ -1,6 +1,7 @@
 import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
+import random
 
 class LibraryUsagePlot:
     def __init__(self, category_file, git_file, enabled_categories_file):
@@ -121,7 +122,15 @@ class LibraryUsagePlot:
 
             # Check if the category is enabled (visible in the plot)
             visible = True if category in enabled_categories else 'legendonly'
-            
+
+            # Assign a random color to the enabled categories
+            if category in enabled_categories:
+                color = random.choice(px.colors.qualitative.Bold)
+
+            else:
+                # Assign colors from the original color palette
+                color = colors[i % len(colors)]
+
             # Combine start and end dates
             trace = go.Scatter(
                 x=category_df['date_start'].tolist() + category_df['date_end'].tolist(),
@@ -129,7 +138,7 @@ class LibraryUsagePlot:
                 mode='markers',
                 name=category,
                 visible=visible,
-                marker=dict(color=colors[i % len(colors)],
+                marker=dict(color=color,
                             symbol=['circle'] * len(category_df) + ['x'] * len(category_df)),
             )
 
