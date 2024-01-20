@@ -121,7 +121,7 @@ class LibraryUsagePlot:
 
             # Check if the category is enabled (visible in the plot)
             visible = True if category in enabled_categories else 'legendonly'
-
+            
             # Combine start and end dates
             trace = go.Scatter(
                 x=category_df['date_start'].tolist() + category_df['date_end'].tolist(),
