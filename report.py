@@ -2,6 +2,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import random
+import seaborn as sns
+import colorsys
 
 class LibraryUsagePlot:
     def __init__(self, category_file, git_file, enabled_categories_file):
@@ -86,6 +88,20 @@ class LibraryUsagePlot:
         for category in sorted(enabled_categories):
             print(category)
 
+    def generate_colors(self, num_colors):
+        colors = []
+        for i in range(num_colors):
+            # Vary hue from 0 to 1, keeping saturation and lightness constant
+            hue = i / num_colors
+            saturation = 0.7  # Adjust saturation here (0 to 1)
+            lightness = 0.5  # Adjust lightness here (0 to 1)
+            rgb_color = colorsys.hls_to_rgb(hue, lightness, saturation)
+            # Convert RGB to hex
+            hex_color = '#%02x%02x%02x' % (int(rgb_color[0]*255), int(rgb_color[1]*255), int(rgb_color[2]*255))
+            colors.append(hex_color)
+        return colors
+
+
     def plot_library_usage_by_category(self):
         """
         Creates an interactive plot of library usage over time, colored by category.
@@ -108,7 +124,15 @@ class LibraryUsagePlot:
 
         # Get unique categories and assign colors
         all_categories = df_sorted['category'].unique()
-        colors = px.colors.qualitative.Plotly
+        # colors = px.colors.qualitative.Plotly
+        # colors = sns.color_palette("Accent", n_colors=len(all_categories)).as_hex()
+        # Generate colors
+        # colors = self.generate_colors(len(all_categories))
+        # Generate a palette with 16 distinct colors
+        colors = sns.color_palette("husl", len(all_categories)).as_hex()
+        print(f'\nNumber of unique colors: {len(set(colors))} / {len(colors)}')
+        for i, color in enumerate(colors):
+            print(f'{i}: {color}')
 
         # Create a Plotly figure
         fig = go.Figure()
