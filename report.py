@@ -24,29 +24,6 @@ class LibraryUsagePlot:
         """
         return categories.get(library, 'Other') if categories.get(library, 'Other') != '' else 'Other'
 
-    def generate_filename(self, enabled_categories):
-        """
-        Generates a filename based on the first few characters of enabled category names.
-
-        Parameters:
-        enabled_categories (list): List of enabled category names.
-
-        Returns:
-        str: A filename constructed from the unique abbreviations of the category names.
-        """
-        i = 1
-        while True:
-            # Create abbreviations by slicing the first i characters of each category
-            abbreviations = [cat[:i].replace(' ','_') for cat in enabled_categories]
-    
-            # Check if all abbreviations are unique
-            if len(set(abbreviations)) == len(enabled_categories):
-                # Join the abbreviations with an underscore and add the prefix 'report_'
-                filename = 'report_' + '-'.join(abbreviations) + '.html'
-                return filename
-    
-            i += 1  # Increase the number of characters to take from each category
-
     def load_categories(self):
         """
         Load the categories from the category file.
@@ -70,7 +47,7 @@ class LibraryUsagePlot:
             for line in file:
                 enabled_categories.append(line.strip())
         return enabled_categories
-    
+
     def print_categories(self):
         """
         Print the categories and enabled categories.
@@ -100,7 +77,6 @@ class LibraryUsagePlot:
             hex_color = '#%02x%02x%02x' % (int(rgb_color[0]*255), int(rgb_color[1]*255), int(rgb_color[2]*255))
             colors.append(hex_color)
         return colors
-
 
     def plot_library_usage_by_category(self):
         """
@@ -187,7 +163,7 @@ class LibraryUsagePlot:
         )
 
         # Generate filename
-        filename = self.generate_filename(enabled_categories)
+        filename = "report.html"
 
         # Save the plot as an HTML file
         fig.write_html(filename)
