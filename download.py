@@ -5,6 +5,7 @@ from github import Github
 import re
 import json
 
+
 def list_python_files(repo, path=""):
     files_list = []
     contents = repo.get_contents(path)
@@ -12,9 +13,14 @@ def list_python_files(repo, path=""):
     for file_content in contents:
         if file_content.type == "dir":
             files_list.extend(list_python_files(repo, file_content.path))
-        elif file_content.name.endswith('.py') or file_content.name.endswith('.ipynb'):
+        elif (
+            file_content.name.endswith(".py")
+            or file_content.name.endswith(".ipynb")
+            or file_content.name == "requirements.txt"
+        ):
             files_list.append(file_content)
     return files_list
+
 
 def get_file_creation_date(repo, file_path):
     commits = repo.get_commits(path=file_path)
@@ -24,56 +30,55 @@ def get_file_creation_date(repo, file_path):
         return creation_date.astimezone(pytz.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')
     return None
 
-def extract_imports(file_content):
-    # Regular expressions for matching import statements
-    import_regex = r'^import\s+[\w\.]+'
-    from_import_regex = r'^from\s+[\w\.]+\s+import\s+[\w\.\*]+'
 
-    # Finding all matches in the file content
-    imports = re.findall(import_regex, file_content, re.MULTILINE)
-    from_imports = re.findall(from_import_regex, file_content, re.MULTILINE)
+def extract_imports(file_content, filename):
+    if filename == "requirements.txt":
+        requirements_regex = r"^([\w\-_]+)(\[.*\])?(==[\w\.\-]+)?"
+        requirements = re.findall(requirements_regex, file_content, re.MULTILINE)
+        return ["import " + match[0] for match in requirements]
+    else:
+        import_regex = r"^import\s+[\w\.]+"
+        from_import_regex = r"^from\s+[\w\.]+\s+import\s+[\w\.\*]+"
+        imports = re.findall(import_regex, file_content, re.MULTILINE)
+        from_imports = re.findall(from_import_regex, file_content, re.MULTILINE)
+        return imports + from_imports
 
-    # Combining both lists and returning
-    return imports + from_imports
 
 def get_repo_data(username, token):
     data = []
     g = Github(token)
     for repo in g.get_user(username).get_repos():
-        print(repo.name)
         try:
             files = list_python_files(repo)
-            print(len(files))
             for file in files:
                 response = requests.get(file.download_url)
-                if file.name.endswith('.py'):
+                if file.name.endswith(".py") or file.name == "requirements.txt":
                     file_content = response.text
-                elif file.name.endswith('.ipynb'):
+                elif file.name.endswith(".ipynb"):
                     notebook_json = json.loads(response.text)
                     file_content = "\n".join(
                         "\n".join(cell["source"])
                         for cell in notebook_json["cells"]
                         if cell["cell_type"] == "code"
                     )
-                imports = extract_imports(file_content)
+                imports = extract_imports(file_content, file.name)
                 creation_date = get_file_creation_date(repo, file.path)
-                data.append([repo.name, file.name, creation_date, file.last_modified, imports])
+                data.append(
+                    [repo.name, file.name, creation_date, file.last_modified, imports]
+                )
         except Exception as e:
-            print(e)
+            print(f"Error processing {repo.name}: {e}")
             continue
-        # break # TODO: Remove
     return data
 
+
 def extract_library_name(import_statement):
-    # Handle 'import x' and 'import x as y' cases
-    if import_statement.startswith('import'):
-        return import_statement.split()[1].split('.')[0]
-
-    # Handle 'from x import y' cases
-    elif import_statement.startswith('from'):
+    if import_statement.startswith("import"):
+        return import_statement.split()[1].split(".")[0]
+    elif import_statement.startswith("from"):
         return import_statement.split()[1]
-
     return None
+
 
 def transform_data(data):
     transformed_data = []

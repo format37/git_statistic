@@ -10,3 +10,8 @@ Networking
 Parallel computing
 Reinforcement learning
 Visualization
+Big Data
+Scientific Computing
+Statistics
+Tools
+Web
