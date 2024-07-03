@@ -100,15 +100,7 @@ class LibraryUsagePlot:
 
         # Get unique categories and assign colors
         all_categories = df_sorted['category'].unique()
-        # colors = px.colors.qualitative.Plotly
-        # colors = sns.color_palette("Accent", n_colors=len(all_categories)).as_hex()
-        # Generate colors
-        # colors = self.generate_colors(len(all_categories))
-        # Generate a palette with 16 distinct colors
         colors = sns.color_palette("husl", len(all_categories)).as_hex()
-        print(f'\nNumber of unique colors: {len(set(colors))} / {len(colors)}')
-        for i, color in enumerate(colors):
-            print(f'{i}: {color}')
 
         # Create a Plotly figure
         fig = go.Figure()
@@ -126,7 +118,6 @@ class LibraryUsagePlot:
             # Assign a random color to the enabled categories
             if category in enabled_categories:
                 color = random.choice(px.colors.qualitative.Bold)
-
             else:
                 # Assign colors from the original color palette
                 color = colors[i % len(colors)]
@@ -140,6 +131,8 @@ class LibraryUsagePlot:
                 visible=visible,
                 marker=dict(color=color,
                             symbol=['circle'] * len(category_df) + ['x'] * len(category_df)),
+                text=category_df['project'].tolist() + category_df['project'].tolist(),  # Add project names
+                hovertemplate="<b>%{text}</b><br>Library: %{y}<br>Date: %{x}<extra></extra>"  # Customize hover text
             )
 
             # Store the trace in the category_to_trace mapping
