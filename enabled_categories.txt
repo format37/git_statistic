@@ -1,17 +1,16 @@
-Audio processing
-Cloud computing
-Computer vision
-Cryptography
-Databases
-Hardware
-Machine learning
-Natural language processing
+CUDA Development
+Natural Language Processing
+Computer Vision
+Virtualization and Containers
+Database Management
+Speech Recognition
+Speech Synthesis
+Data Processing
+Data Visualization
+Reinforcement Learning
+Deep Learning
+Automation
 Networking
-Parallel computing
-Reinforcement learning
-Visualization
-Big Data
-Scientific Computing
-Statistics
-Tools
-Web
+Machine Learning
+Distributed Computing
+API Development
