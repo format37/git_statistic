@@ -2,6 +2,7 @@ import pandas as pd
 from collections import defaultdict
 import csv
 import json
+from datetime import datetime
 
 def load_categories(json_file):
     with open(json_file, 'r') as f:
@@ -10,6 +11,10 @@ def load_categories(json_file):
 def load_repos(json_file):
     with open(json_file, 'r') as f:
         return json.load(f)
+
+def days_from_today(date):
+    today = datetime.now().date()
+    return (today - date.date()).days
 
 def create_project_overview_report(csv_file, cat_file, repos_file, output_file='project_overview.md'):
     # Read the CSV file
@@ -65,8 +70,10 @@ def create_project_overview_report(csv_file, cat_file, repos_file, output_file='
         
         for project, data in sorted_projects:
             f.write(f"## {project}\n\n")
-            f.write(f"- **Start Date:** {data['start_date'].strftime('%Y-%m-%d')}\n")
-            f.write(f"- **End Date:** {data['end_date'].strftime('%Y-%m-%d')}\n\n")
+            start_days = days_from_today(data['start_date'])
+            end_days = days_from_today(data['end_date'])
+            f.write(f"- **Start Date:** {data['start_date'].strftime('%Y-%m-%d')} ({start_days} days ago)\n")
+            f.write(f"- **End Date:** {data['end_date'].strftime('%Y-%m-%d')} ({end_days} days ago)\n\n")
             
             if data['about']:
                 f.write(f"**About:** {data['about']}\n\n")
