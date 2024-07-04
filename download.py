@@ -1,26 +1,28 @@
 import pandas as pd
 import pytz
 import requests
-from github import Github
+from github import Github, GithubException
 import re
 import json
-
+import csv
 
 def list_python_files(repo, path=""):
     files_list = []
-    contents = repo.get_contents(path)
+    try:
+        contents = repo.get_contents(path)
 
-    for file_content in contents:
-        if file_content.type == "dir":
-            files_list.extend(list_python_files(repo, file_content.path))
-        elif (
-            file_content.name.endswith(".py")
-            or file_content.name.endswith(".ipynb")
-            or file_content.name == "requirements.txt"
-        ):
-            files_list.append(file_content)
+        for file_content in contents:
+            if file_content.type == "dir":
+                files_list.extend(list_python_files(repo, file_content.path))
+            elif (
+                file_content.name.endswith(".py")
+                or file_content.name.endswith(".ipynb")
+                or file_content.name == "requirements.txt"
+            ):
+                files_list.append(file_content)
+    except GithubException as e:
+        print(f"Error accessing {repo.name}/{path}: {e}")
     return files_list
-
 
 def get_file_creation_date(repo, file_path):
     commits = repo.get_commits(path=file_path)
@@ -29,7 +31,6 @@ def get_file_creation_date(repo, file_path):
         creation_date = first_commit.commit.author.date
         return creation_date.astimezone(pytz.utc).strftime('%a, %d %b %Y %H:%M:%S GMT')
     return None
-
 
 def extract_imports(file_content, filename):
     if filename == "requirements.txt":
@@ -42,7 +43,6 @@ def extract_imports(file_content, filename):
         imports = re.findall(import_regex, file_content, re.MULTILINE)
         from_imports = re.findall(from_import_regex, file_content, re.MULTILINE)
         return imports + from_imports
-
 
 def get_repo_data(username, token):
     data = []
@@ -64,13 +64,25 @@ def get_repo_data(username, token):
                 imports = extract_imports(file_content, file.name)
                 creation_date = get_file_creation_date(repo, file.path)
                 data.append(
-                    [repo.name, file.name, creation_date, file.last_modified, imports]
+                    [repo.name, file.name, creation_date, file.last_modified, imports, repo.description]
                 )
         except Exception as e:
             print(f"Error processing {repo.name}: {e}")
             continue
     return data
 
+def transform_data(data):
+    transformed_data = []
+
+    for item in data:
+        repo, filename, first_commit_date, last_update_date, imports, description = item
+
+        for import_statement in imports:
+            library_name = extract_library_name(import_statement)
+            if library_name:
+                transformed_data.append([repo, filename, first_commit_date, last_update_date, library_name, description])
+
+    return transformed_data
 
 def extract_library_name(import_statement):
     if import_statement.startswith("import"):
@@ -78,20 +90,6 @@ def extract_library_name(import_statement):
     elif import_statement.startswith("from"):
         return import_statement.split()[1]
     return None
-
-
-def transform_data(data):
-    transformed_data = []
-
-    for item in data:
-        repo, filename, first_commit_date, last_update_date, imports = item
-
-        for import_statement in imports:
-            library_name = extract_library_name(import_statement)
-            if library_name:
-                transformed_data.append([repo, filename, first_commit_date, last_update_date, library_name])
-
-    return transformed_data
 
 def simplify_library_name(name):
     return name.split('.')[0]
@@ -103,12 +101,18 @@ def main():
     data = get_repo_data(username, token)
     data_temp = transform_data(data)
     df = pd.DataFrame(data_temp)
-    df.columns = ['project', 'file', 'date_start', 'date_end', 'library']
+    # Use '|' as separator to avoid conflicts with commas in the 'about' field
+    df.to_csv('git_tmp.csv', sep='|', quoting=csv.QUOTE_MINIMAL, escapechar='\\')
+
+    df.columns = ['project', 'file', 'date_start', 'date_end', 'library', 'about']
     # Convert 'date' column to datetime
     df['date_start'] = pd.to_datetime(df['date_start'], format='%a, %d %b %Y %H:%M:%S GMT')
     df['date_end'] = pd.to_datetime(df['date_end'], format='%a, %d %b %Y %H:%M:%S GMT')
     df['library'] = df['library'].apply(simplify_library_name)
-    df.to_csv('git.csv')
+    
+    # Use '|' as separator to avoid conflicts with commas in the 'about' field
+    df.to_csv('git.csv', sep='|', quoting=csv.QUOTE_MINIMAL, escapechar='\\')
+    
     libraries = df['library'].unique()
     cat = {}
     for i, library in enumerate(libraries):
@@ -116,8 +120,12 @@ def main():
     # Save cat as json
     with open('cat.json', 'w') as f:
         json.dump(cat, f, indent=1)
-    print('Now you may to fill categories in file cat.json')
-    print('After that run file report.py')
+    print('Now you have to fill categories in file cat.json using cat_retriever.ipynb')
+    print("""After that run:
+report.py
+timeline.py
+md_report.py
+""")
 
 if __name__ == '__main__':
     main()

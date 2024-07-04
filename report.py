@@ -4,6 +4,7 @@ import pandas as pd
 import random
 import seaborn as sns
 import colorsys
+import csv
 
 class LibraryUsagePlot:
     def __init__(self, category_file, git_file, enabled_categories_file):
@@ -84,7 +85,7 @@ class LibraryUsagePlot:
         Each category can be toggled on or off in the plot. Certain categories are disabled (visible in legend only) by default.
         """
         # Load the Git dataset
-        df = pd.read_csv(self.git_file)
+        df = pd.read_csv(self.git_file, sep='|', quoting=csv.QUOTE_MINIMAL, escapechar='\\')
 
         # Load categories
         categories = self.load_categories()
@@ -131,8 +132,9 @@ class LibraryUsagePlot:
                 visible=visible,
                 marker=dict(color=color,
                             symbol=['circle'] * len(category_df) + ['x'] * len(category_df)),
-                text=category_df['project'].tolist() + category_df['project'].tolist(),  # Add project names
-                hovertemplate="<b>%{text}</b><br>Library: %{y}<br>Date: %{x}<extra></extra>"  # Customize hover text
+                text=category_df['project'].tolist() + category_df['project'].tolist(),
+                customdata=[category] * (2 * len(category_df)),  # Add category to customdata
+                hovertemplate="<b>%{text}</b><br>Library: %{y}<br>Date: %{x}<br>Category: %{customdata}<extra></extra>"
             )
 
             # Store the trace in the category_to_trace mapping
